@@ -1,0 +1,40 @@
+language: generic
+dist: trusty
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env:
+        - COMPILER_NAME=gcc
+        - CC=gcc-4.9
+        - CXX=g++-4.9
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0
+      env:
+        - COMPILER_NAME=clang
+        - CC=clang-4.0
+        - CXX=clang++-4.0
+
+    - os: osx
+      compiler: clang
+# we may need to install libcurl, valgrind, and the custom version of libcurl
+# that is built against gnutls.
+script:
+  - printenv
+  - cmake --version
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . -- -j4
+  - ctest --output-on-failure -C Debug

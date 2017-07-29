@@ -1,0 +1,63 @@
+version: 0.1.{build}
+environment:
+  global:
+    CFLAGS: /MP
+  matrix:
+    # array of all environments used to test builds
+    # Legacy NMake, 32-bit
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      GENERATOR: NMake Makefiles
+      CFG: Debug
+      VSINSTALL: '"Microsoft Visual Studio 14.0"/VC'
+      MSVC_PLATFORM: x86
+
+    # 32-bit Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      GENERATOR: Visual Studio 14 2015
+      CFG: Debug
+      VSINSTALL: '"Microsoft Visual Studio 14.0"/VC'
+      MSVC_PLATFORM: x86
+
+    # 64-bit Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      GENERATOR: Visual Studio 14 2015
+      CFG: Debug
+      VSINSTALL: '"Microsoft Visual Studio 14.0"/VC'
+      MSVC_PLATFORM: amd64
+
+    # 32-bit Studio 2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GENERATOR: Visual Studio 15 2017
+      CFG: Debug
+      VSINSTALL: '"Microsoft Visual Studio"/2017/Community/VC/Auxiliary/Build'
+      MSVC_PLATFORM: x86
+
+    # 64-bit Studio 2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GENERATOR: Visual Studio 15 2017
+      CFG: Debug
+      VSINSTALL: '"Microsoft Visual Studio"/2017/Community/VC/Auxiliary/Build'
+      MSVC_PLATFORM: amd64
+
+init:
+  - cmake --version
+  - C:\"Program Files (x86)"/%VSINSTALL%/vcvarsall.bat %MSVC_PLATFORM%
+
+before_build:
+#  - git clone https://github.com/Microsoft/vcpkg C:\Projects\vcpkg
+#  - c:\Projects\vcpkg\bootstrap-vcpkg.bat
+#  - set VCPKG_ROOT=C:\Projects\vcpkg
+#  - c:\Projects\vcpkg\vcpkg.exe integrate install
+#  - c:\Projects\vcpkg\vcpkg.exe install curl
+
+build:
+  parallel: true
+
+build_script:
+  - md build
+  - cd build
+  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CFG% ..
+  - cmake --build .
+
+test_script:
+  - ctest --output-on-failure -C "%CFG%"

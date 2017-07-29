@@ -1,3 +1,8 @@
 example
-example.o
-analytics.o
+*.o
+*.sublime-workspace
+tests/test
+build
+lxbuild
+winbuild
+.vscode
