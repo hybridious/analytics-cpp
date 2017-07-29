@@ -1,16 +1,9 @@
 # analytics-cpp
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/segmentio/analytics-cpp/blob/master/LICENSE)
-[![Linux Status](https://img.shields.io/travis/segementio/analytics-cpp/master.svg?label=linux)](https://travis-ci.org/segmentio/analytics-cpp)
+[![Linux/Mac Status](https://travis-ci.org/segmentio/analytics-cpp.svg?branch=master)](https://travis-ci.org/segmentio/analytics-cpp)
 [![Windows Status](https://img.shields.io/appveyor/ci/segmentio/analytics-cpp/master.svg?label=windows)](https://ci.appveyor.com/project/segmentio/analytics-cpp)
-[![Test Coverage](https://coveralls.io/repos/segmentio/analytics-cpp/badge.svg?branch=master)](https://coveralls.io/r/segmentio/analytics-cpp)
-
-Build status on Garrett's Branch:
----------------------------------
-
-[![Linux/Mac Status](https://travis-ci.org/segmentio/analytics-cpp.svg?branch=garrett)](https://travis-ci.org/gdamore/analytics-cpp)
-[![Windows Status](https://img.shields.io/appveyor/ci/gdamore/analytics-cpp/garrett.svg?label=windows)](https://ci.appveyor.com/project/gdamore/analytics-cpp)
-[![Test Coverage](https://coveralls.io/repos/gdamore/analytics-cpp/badge.svg?branch=coverall)](https://coveralls.io/r/gdamore/analytics-cpp)
+[![Coverage Status](https://coveralls.io/repos/github/segmentio/analytics-cpp/badge.svg)](https://coveralls.io/github/segmentio/analytics-cpp)
 
 A C++ implementation for sending analytics events to Segment.
 This requires C++11, which means GCC 4.9 or newer; Clang 3.4 or newer; and
