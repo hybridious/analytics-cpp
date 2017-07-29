@@ -9,7 +9,7 @@
 
 #include "analytics.hpp"
 
-`using namespace segment::analytics;
+using namespace segment::analytics;
 
 int main()
 {
