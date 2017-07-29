@@ -32,4 +32,5 @@ macro(add_a_test NAME TIMEOUT)
     #endif()
 endmacro(add_a_test)
 
-add_a_test(test-submit 20)
+# 60 seconds because gcov tests can take a while
+add_a_test(test-submit 60)

@@ -9,10 +9,13 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-      env:
-        - COMPILER_NAME=gcc
-        - CC=gcc-4.9
-        - CXX=g++-4.9
+      env: >-
+        COMPILER_NAME=gcc
+        CC=gcc-4.9
+        CXX=g++-4.9
+        BUILD_TYPE=Debug
+        COVERALLS=OFF
+        TEST_TARGET=test
 
     - os: linux
       addons:
@@ -21,10 +24,28 @@ matrix:
             - llvm-toolchain-trusty-4.0
           packages:
             - clang-4.0
-      env:
-        - COMPILER_NAME=clang
-        - CC=clang-4.0
-        - CXX=clang++-4.0
+      env: >-
+        COMPILER_NAME=clang
+        CC=clang-4.0
+        CXX=clang++-4.0
+        BUILD_TYPE=Debug
+        COVERALLS=OFF
+        TEST_TARGET=test
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: >-
+        COMPILER_NAME=gcc
+        CC=gcc-4.9
+        CXX=g++-4.9
+        BUILD_TYPE=Debug
+        TEST_TARGET=coveralls
+        COVERALLS=ON
 
     - os: osx
       compiler: clang
@@ -35,6 +56,6 @@ script:
   - cmake --version
   - mkdir build
   - cd build
-  - cmake ..
-  - cmake --build . -- -j4
-  - ctest --output-on-failure -C Debug
+  - cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCOVERALLS=${COVERALLS} ..
+  - make
+  - make ${TEST_TARGET}
