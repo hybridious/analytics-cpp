@@ -10,7 +10,7 @@ This requires C++11, which means GCC 4.9 or newer; Clang 3.4 or newer; and
 Visual Studio 2015 or newer.
 
 This library is in a beta state and its API/ABI may change.
-**This is not production-ready software.**
+**This is not production-ready software.** However, we encourage customers to use it and report bugs!
 
 ## Building
 
