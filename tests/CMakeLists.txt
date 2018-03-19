@@ -18,6 +18,10 @@ macro(add_a_test NAME TIMEOUT)
     set_tests_properties(${NAME} PROPERTIES TIMEOUT ${TIMEOUT})
     list(APPEND all_tests ${NAME})
 
+    if (CMAKE_SYSTEM_NAME MATCHES Windows)
+        target_link_libraries(${NAME} rpcrt4.lib)
+    endif()
+
     # add a valgrind check if one exists
     # DISABLED, because libcurl using openssl on Linux (the default) breaks
     # valgrind horribly (Ubuntu Trusty).  Not that this does wonders to

@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <ctime>
 
 #ifdef SEGMENT_USE_CURL
 #include <curl/curl.h> // So that we can clean up memory at the end.
@@ -83,6 +84,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
             REQUIRE(cb->fail == 0);
         }
     }
+
     GIVEN("Batching tests")
     {
         auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
@@ -190,6 +192,158 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
             analytics.FlushWait();
             REQUIRE(cb->fail == 1);
             REQUIRE(cb->last_reason == "Connection refused");
+        }
+    }
+}
+
+extern "C"
+{
+#ifdef WIN32
+#include <Rpc.h>
+#else
+#include <uuid/uuid.h>
+#endif
+}
+
+std::string newUUID()
+{
+#ifdef WIN32
+    UUID uuid;
+    UuidCreate ( &uuid );
+
+    unsigned char * str;
+    UuidToStringA ( &uuid, &str );
+
+    std::string s( ( char* ) str );
+
+    RpcStringFreeA ( &str );
+#else
+    uuid_t uuid;
+    uuid_generate_random ( uuid );
+    char s[37];
+    uuid_unparse ( uuid, s );
+#endif
+    return s;
+}
+
+std::string datetime_now()
+{
+    char value[28];
+    time_t cur_time = time(nullptr);
+    ctime_s(value, sizeof(value), &cur_time);
+
+    return value;
+}
+
+TEST_CASE("Action Tests", "[analytics]")
+{
+    GIVEN("Analytics object with default configuration")
+    {
+        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto apiHost = "https://api.segment.io";
+
+        auto cb = std::make_shared<myTestCB>();
+        Analytics analytics(writeKey, apiHost);
+        analytics.MaxRetries = 0;
+        analytics.FlushCount = 1;
+        analytics.Callback = cb;
+
+        Object properties = {
+            { "Success", true },
+            { "When", datetime_now() }
+        };
+
+        Object traits = {
+            { "Subscription Plan", "Free" },
+            { "Friends", 30 },
+            { "Joined", datetime_now() },
+            { "Cool", true },
+            { "Company", { { "name", "Initech, Inc " } } },
+            { "Revenue", 40.32 },
+            { "Don't Submit This, Kids", "Unauthorized Access" }
+        };
+
+        Object context = {
+            { "ip", "12.212.12.49" },
+            { "language", "en-us" }
+        };
+
+        Object integrations = {
+            { "all", false },
+            { "Mixpanel", true },
+            { "Salesforce", true }
+        };
+
+        WHEN("send identify message to server")
+        {
+            analytics.Identify("user", newUUID(), traits, context, integrations);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send track message to server")
+        {
+            analytics.Track("user", newUUID(), "Ran cpp test", properties, context, integrations);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send alias message to server")
+        {
+            analytics.Alias("previousId", "to");
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send group message to server")
+        {
+            analytics.Group("group", "user", newUUID(), traits, context, integrations);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send page message to server")
+        {
+            analytics.Page("name", "user", newUUID(), properties, context, integrations);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send screen message to server")
+        {
+            analytics.Screen("name", "user", newUUID(), properties, context, integrations);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
         }
     }
 }
