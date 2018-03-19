@@ -20,8 +20,6 @@ macro(add_a_test NAME TIMEOUT)
 
     if (CMAKE_SYSTEM_NAME MATCHES Windows)
         target_link_libraries(${NAME} rpcrt4.lib)
-    else
-        target_link_libraries(${NAME} -luuid)
     endif()
 
     # add a valgrind check if one exists
