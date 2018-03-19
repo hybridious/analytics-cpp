@@ -228,11 +228,11 @@ std::string newUUID()
 
 std::string datetime_now()
 {
-    char value[28];
+    std::stringstream ss;
     time_t cur_time = time(nullptr);
-    ctime_s(value, sizeof(value), &cur_time);
+    ss << ctime(&cur_time);
 
-    return value;
+    return ss.str();
 }
 
 TEST_CASE("Action Tests", "[analytics]")
