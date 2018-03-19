@@ -13,13 +13,15 @@ find_program(VALGRIND valgrind)
 macro(add_a_test NAME TIMEOUT)
     # We could link statically, but this is easier.
     add_executable(${NAME} ${NAME}.cpp catch.hpp)
-    target_link_libraries(${NAME} ${PROJECT_NAME}_static ${CURL_LIBRARIES} uuid)
+    target_link_libraries(${NAME} ${PROJECT_NAME}_static ${CURL_LIBRARIES})
     add_test(NAME ${NAME} COMMAND ${NAME})
     set_tests_properties(${NAME} PROPERTIES TIMEOUT ${TIMEOUT})
     list(APPEND all_tests ${NAME})
 
     if (CMAKE_SYSTEM_NAME MATCHES Windows)
         target_link_libraries(${NAME} rpcrt4.lib)
+    elseif (CMAKE_SYSTEM_NAME MATCHES Linux)
+        target_link_libraries(${NAME} uuid)
     endif()
 
     # add a valgrind check if one exists
