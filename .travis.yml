@@ -9,6 +9,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
+            - uuid-dev
       env: >-
         CC=gcc-4.9
         CXX=g++-4.9
@@ -24,6 +25,7 @@ matrix:
             - llvm-toolchain-trusty-4.0
           packages:
             - clang-4.0
+            - uuid-dev
       env: >-
         CC=clang-4.0
         CXX=clang++-4.0
@@ -39,6 +41,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
+            - uuid-dev
       env: >-
         CC=gcc-4.9
         CXX=g++-4.9
