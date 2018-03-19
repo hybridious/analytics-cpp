@@ -54,10 +54,6 @@ matrix:
         TEST_TARGET=test
         COVERALLS=OFF
 
-# We need to install uuid-dev package which is used in test project
-before_script:
-  - sudo apt-get install uuid-dev
-
 # we may need to install libcurl, valgrind, and the custom version of libcurl
 # that is built against gnutls.
 script:
