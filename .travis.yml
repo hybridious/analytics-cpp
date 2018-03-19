@@ -9,7 +9,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-            - uuid-dev
       env: >-
         CC=gcc-4.9
         CXX=g++-4.9
@@ -25,7 +24,6 @@ matrix:
             - llvm-toolchain-trusty-4.0
           packages:
             - clang-4.0
-            - uuid-dev
       env: >-
         CC=clang-4.0
         CXX=clang++-4.0
@@ -41,7 +39,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-            - uuid-dev
       env: >-
         CC=gcc-4.9
         CXX=g++-4.9
@@ -56,6 +53,10 @@ matrix:
         BUILD_TYPE=Debug
         TEST_TARGET=test
         COVERALLS=OFF
+
+# We need to install uuid-dev package which is used in test project
+before_script:
+  - sudo apt-get install uuid-dev
 
 # we may need to install libcurl, valgrind, and the custom version of libcurl
 # that is built against gnutls.
