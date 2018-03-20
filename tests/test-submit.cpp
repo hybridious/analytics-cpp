@@ -14,8 +14,13 @@
 #include <thread>
 #include <ctime>
 
-#ifdef SEGMENT_USE_CURL
-#include <curl/curl.h> // So that we can clean up memory at the end.
+#if defined(SEGMENT_USE_WININET)
+#   include "http-wininet.hpp"
+#elif defined(SEGMENT_USE_CURL)
+#   include <curl/curl.h> // So that we can clean up memory at the end.
+#   include "http-curl.hpp"
+#else
+#   include "http-none.hpp"
 #endif
 
 #define CATCH_CONFIG_RUNNER
@@ -393,6 +398,70 @@ TEST_CASE("Action Tests", "[analytics]")
                 analytics.FlushWait();
                 REQUIRE(cb->fail == 0);
             }
+        }
+    }
+}
+
+TEST_CASE("E2E Test", "[analytics]")
+{
+    GIVEN("Analytics object with runscope token")
+    {
+        // Segment Write Key from https://app.segment.com/segment-libraries/sources/analytics_cpp_e2e_test/overview
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
+        auto apiHost = "https://api.segment.io";
+
+        std::string runscopeBucket = "ptvhfe8q5b24";
+        std::string runscopeToken = "ba0319b9-64d3-4544-af73-b6acfd09fb45";
+        std::string runscopeHost = "https://api.runscope.com";
+
+        auto anonymousId = newUUID();
+
+        WHEN("Send events to a Runscope bucket used by this test")
+        {
+            auto cb = std::make_shared<myTestCB>();
+            Analytics analytics(writeKey, apiHost);
+            analytics.MaxRetries = 0;
+            analytics.FlushCount = 1;
+            analytics.Callback = cb;
+
+            analytics.Track("prateek", anonymousId, "Item Purchased", nullptr, nullptr, nullptr);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+
+            // Give some time for events to be delivered from the API to destinations.
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+
+//             AND_WHEN("Retrieve messages from runscope bucket")
+//             {
+//                 std::shared_ptr<segment::http::Handler> Handler;
+// #ifdef SEGMENT_USE_CURL
+//                 Handler = std::make_shared<segment::http::HandlerCurl>();
+// #elif defined(SEGMENT_USE_WININET)
+//                 Handler = std::make_shared<segment::http::HandlerWinInet>();
+// #else
+//                 Handler = std::make_shared<segment::http::HandlerNone>();
+// #endif
+
+//                 segment::http::Request req;
+//                 req.Method = "GET";
+//                 req.Headers["Authorization"] = "Basic " + runscopeToken;
+//                 req.URL = runscopeHost + "/buckets/" + runscopeBucket + "/messages?count=20";
+
+//                 for (int i = 0; i < 5; i++)
+//                 {
+//                     Handler->Handle(req);
+//                 }
+
+//                 AND_THEN("the message sent to api.segment.io exists in messages")
+//                 {
+
+//                 }
+//             }
         }
     }
 }
