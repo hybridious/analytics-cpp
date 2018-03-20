@@ -290,7 +290,7 @@ namespace analytics {
         const Object& context,
         const Object& integrations)
     {
-        auto ev = CreateTrackEvent(userId, event, properties);
+        auto ev = CreateTrackEvent(event, userId, properties);
         addEventString(ev, "anonymousId", anonymousId);
         addEventObject(ev, "context", context);
         addEventObject(ev, "integrations", integrations);
