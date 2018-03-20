@@ -345,6 +345,55 @@ TEST_CASE("Action Tests", "[analytics]")
                 REQUIRE(cb->fail == 0);
             }
         }
+
+        WHEN("send screen message with null option")
+        {
+            analytics.Screen("bar", "qaz", "", nullptr, nullptr, nullptr);
+
+            THEN("no failing response from server")
+            {
+                cb->Wait();
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
+
+        WHEN("send multiple messages asynchronously")
+        {
+            int trials = 10;
+
+            for (int i = 0; i < trials; i++)
+            {
+                switch (std::rand() % 6)
+                {
+                case 0:
+                    analytics.Identify("user", newUUID(), traits, context, integrations);
+                    break;
+                case 1:
+                    analytics.Track("user", newUUID(), "Ran cpp test", properties, context, integrations);
+                    break;
+                case 2:
+                    analytics.Alias("previousId", "to", newUUID(), context, integrations);
+                    break;
+                case 3:
+                    analytics.Group("group", "user", newUUID(), traits, context, integrations);
+                    break;
+                case 4:
+                    analytics.Page("name", "user", newUUID(), properties, context, integrations);
+                    break;
+                case 5:
+                    analytics.Screen("name", "user", newUUID(), properties, context, integrations);
+                    break;
+                }
+            }
+
+            THEN("no failing response from server")
+            {
+                cb->Wait(trials);
+                analytics.FlushWait();
+                REQUIRE(cb->fail == 0);
+            }
+        }
     }
 }
 
