@@ -468,7 +468,15 @@ namespace analytics {
 
         req.Method = "POST";
         req.URL = this->host + "/v1/batch";
-        req.Headers["User-Agent"] = "AnalyticsCPP/0.1";
+
+        // Send user agent in the form of {library_name}/{library_version} as per RFC 7231.
+        auto library = this->Context["library"];
+        std::ostringstream ss;
+        ss << library["name"] << "/" << library["version"];
+        auto userAgent = ss.str();
+		userAgent.erase(std::remove(userAgent.begin(), userAgent.end(), '"'), userAgent.end());
+		req.Headers["User-Agent"] = userAgent;
+
         // Note: libcurl could do this for us, but for other transports
         // we do it here -- keeping the transports as unaware as possible.
         req.Headers["Authorization"] = "Basic " + base64_encode(this->writeKey + ":");
