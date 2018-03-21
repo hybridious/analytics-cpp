@@ -416,22 +416,6 @@ TEST_CASE("E2E Test", "[analytics]")
 
         auto anonymousId = newUUID();
 
-        Object properties = {
-            { "Success", true },
-            { "When", datetime_now() }
-        };
-
-        Object context = {
-            { "ip", "12.212.12.49" },
-            { "language", "en-us" }
-        };
-
-        Object integrations = {
-            { "all", false },
-            { "Mixpanel", true },
-            { "Salesforce", true }
-        };
-
         WHEN("Send events to a Runscope bucket used by this test")
         {
             auto cb = std::make_shared<myTestCB>();
@@ -440,8 +424,7 @@ TEST_CASE("E2E Test", "[analytics]")
             analytics.FlushCount = 1;
             analytics.Callback = cb;
 
-
-            analytics.Track("prateek", anonymousId, "Item Purchased", properties, context, integrations);
+            analytics.Track("prateek", anonymousId, "Item Purchased", nullptr, nullptr, nullptr);
 
             THEN("no failing response from server")
             {
@@ -474,20 +457,20 @@ TEST_CASE("E2E Test", "[analytics]")
                     auto res = Handler->Handle(req);
                     auto data = Object::parse(res->Body);
 
-                    std::vector<Object> messages;
+                    std::vector<std::string> messages;
                     for (auto item : data["data"])
                     {
                         req.URL = messageUrl + "/" + item["uuid"].get<std::string>();
                         res = Handler->Handle(req);
 
                         auto messageData = Object::parse(res->Body);
-                        messages.push_back(messageData["data"]["request"]["body"]);
+                        messages.push_back(messageData["data"]["request"]["body"].get<std::string>());
                     }
 
                     for (auto m : messages)
                     {
-                        auto msg = Object::parse(m.get<std::string>());
-                        if (msg["anonymousId"].get<std::string>() == anonymousId)
+                        auto msg = Object::parse(m);
+                        if (msg.find("anonymousId") != msg.end() && msg["anonymousId"].get<std::string>() == anonymousId)
                         {
                             message_found = true;
                             break;
