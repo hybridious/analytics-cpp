@@ -73,7 +73,7 @@ namespace http {
         static size_t writeCallback(char* ptr, size_t sz, size_t nmemb, void* udata)
         {
             curlReq* creq = (curlReq*)udata;
-            char* ucdata = (char*)udata;
+            char* ucdata = (char*)ptr;
             size_t nbytes = sz * nmemb;
             creq->respData += std::string(ucdata, nbytes);
             return (nbytes);
@@ -91,6 +91,8 @@ namespace http {
             if ((req = this->req) == NULL) {
                 throw std::bad_alloc();
             }
+
+			curl_easy_setopt(req, CURLOPT_SSL_VERIFYPEER, FALSE);
 
 #define setopt(k, v)                                        \
     if ((rv = curl_easy_setopt(req, k, v)) != CURLE_OK) {   \
