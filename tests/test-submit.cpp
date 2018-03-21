@@ -416,6 +416,22 @@ TEST_CASE("E2E Test", "[analytics]")
 
         auto anonymousId = newUUID();
 
+        Object properties = {
+            { "Success", true },
+            { "When", datetime_now() }
+        };
+
+        Object context = {
+            { "ip", "12.212.12.49" },
+            { "language", "en-us" }
+        };
+
+        Object integrations = {
+            { "all", false },
+            { "Mixpanel", true },
+            { "Salesforce", true }
+        };
+
         WHEN("Send events to a Runscope bucket used by this test")
         {
             auto cb = std::make_shared<myTestCB>();
@@ -424,7 +440,8 @@ TEST_CASE("E2E Test", "[analytics]")
             analytics.FlushCount = 1;
             analytics.Callback = cb;
 
-            analytics.Track("prateek", anonymousId, "Item Purchased", nullptr, nullptr, nullptr);
+
+            analytics.Track("prateek", anonymousId, "Item Purchased", properties, context, integrations);
 
             THEN("no failing response from server")
             {
