@@ -85,10 +85,6 @@ namespace http {
             CURLcode rv;
             long code;
 
-            if (meth != "POST") {
-                throw std::invalid_argument("Only POST supported");
-            }
-
             if (this->req == NULL) {
                 this->req = curl_easy_init();
             }
@@ -107,11 +103,13 @@ namespace http {
 
             std::string body(this->body.begin(), this->body.end());
 
-            // We only handle post.
             setopt(CURLOPT_URL, url.c_str());
-            setopt(CURLOPT_POSTFIELDS, body.c_str());
-            setopt(CURLOPT_POSTFIELDSIZE, body.length());
-            setopt(CURLOPT_POST, 1);
+            if (meth == "POST")
+            {
+                setopt(CURLOPT_POSTFIELDS, body.c_str());
+                setopt(CURLOPT_POSTFIELDSIZE, body.length());
+                setopt(CURLOPT_POST, 1);
+            }
             setopt(CURLOPT_HTTPHEADER, this->headers);
             setopt(CURLOPT_WRITEFUNCTION, this->writeCallback);
             setopt(CURLOPT_WRITEDATA, this);
@@ -170,7 +168,7 @@ namespace http {
         }
 
         creq.setBody(req.Body);
-        creq.perform("POST", req.URL);
+        creq.perform(req.Method, req.URL);
         resp->Code = creq.respCode;
         resp->Message = creq.respMessage;
         resp->Body = creq.respData;
