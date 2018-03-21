@@ -56,7 +56,7 @@ namespace http {
 
     std::unique_ptr<Response> HandlerWinInet::Handle(const Request& req)
     {
-        URL_COMPONENTS urlComp;
+        URL_COMPONENTSA urlComp;
         HINTERNET internet;
         HINTERNET connect;
         HINTERNET request;
@@ -67,6 +67,7 @@ namespace http {
         const char* acctypes[] = { "*/*", NULL };
         std::string host;
         std::string path;
+        std::string body;
 
         auto resp = std::unique_ptr<Response>(new Response());
 
@@ -98,7 +99,7 @@ namespace http {
             goto fail;
         }
 
-        request = HttpOpenRequestA(connect, "POST", path.c_str(),
+        request = HttpOpenRequestA(connect, req.Method.c_str(), path.c_str(),
             NULL, NULL, acctypes,
             INTERNET_FLAG_NO_UI | secflag,
             NULL);
@@ -130,6 +131,16 @@ namespace http {
             goto fail;
         }
 
+        // Read response content
+        size = sizeof(message);
+        if (!HttpQueryInfoA(request, HTTP_QUERY_CONTENT_LENGTH, message, 
+                &size, NULL)) {
+            goto fail;
+        }
+        size = std::stoi(message);
+        body.resize(size);
+        InternetReadFile(request, (void*)body.c_str(), size, &size);
+
         if (request != NULL) {
             InternetCloseHandle(request);
         }
@@ -141,7 +152,7 @@ namespace http {
         }
         resp->Code = status;
         resp->Message = message;
-        resp->Body = std::string();
+        resp->Body = body;
         return (resp);
 
     fail:
