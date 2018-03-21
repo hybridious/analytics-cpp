@@ -92,8 +92,6 @@ namespace http {
                 throw std::bad_alloc();
             }
 
-			curl_easy_setopt(req, CURLOPT_SSL_VERIFYPEER, FALSE);
-
 #define setopt(k, v)                                        \
     if ((rv = curl_easy_setopt(req, k, v)) != CURLE_OK) {   \
         if (rv == CURLE_OUT_OF_MEMORY) {                    \
