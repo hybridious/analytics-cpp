@@ -72,7 +72,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
 {
     GIVEN("A valid writeKey")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://api.segment.io";
 
         THEN("we can submit tracked events")
@@ -92,7 +92,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
 
     GIVEN("Batching tests")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://api.segment.io";
 
         THEN("we can submit tracked events")
@@ -117,7 +117,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
 
     GIVEN("Flushed events")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://api.segment.io";
 
         THEN("we can submit tracked events")
@@ -144,7 +144,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
 
     GIVEN("A bogus URL")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://api.segment.io/nobodyishome";
 
         THEN("gives a 404 HttpException")
@@ -182,7 +182,7 @@ TEST_CASE("Submissions to Segment work", "[analytics]")
 
     GIVEN("Localhost (random port)")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://localhost:50051";
         THEN("Connection is refused")
         {
@@ -244,7 +244,7 @@ TEST_CASE("Action Tests", "[analytics]")
 {
     GIVEN("Analytics object with default configuration")
     {
-        auto writeKey = "LpSP8WJmW312Z0Yj1wluUcr76kd4F0xl";
+        auto writeKey = "LmiGFAvSuRLBgIpFzj9pMzhMDXRpvdt7";
         auto apiHost = "https://api.segment.io";
 
         auto cb = std::make_shared<myTestCB>();
@@ -411,7 +411,7 @@ TEST_CASE("E2E Test", "[analytics]")
         auto apiHost = "https://api.segment.io";
 
         std::string runscopeBucket = "ptvhfe8q5b24";
-        std::string runscopeToken = "ba0319b9-64d3-4544-af73-b6acfd09fb45";
+        std::string runscopeToken = std::getenv("RUNSCOPE_TOKEN");
         std::string runscopeHost = "https://api.runscope.com";
 
         auto anonymousId = newUUID();
@@ -431,37 +431,60 @@ TEST_CASE("E2E Test", "[analytics]")
                 cb->Wait();
                 analytics.FlushWait();
                 REQUIRE(cb->fail == 0);
+
+                // Give some time for events to be delivered from the API to destinations.
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+
+                std::shared_ptr<segment::http::Handler> Handler;
+#ifdef SEGMENT_USE_CURL
+                Handler = std::make_shared<segment::http::HandlerCurl>();
+#elif defined(SEGMENT_USE_WININET)
+                Handler = std::make_shared<segment::http::HandlerWinInet>();
+#else
+                Handler = std::make_shared<segment::http::HandlerNone>();
+#endif
+                auto messageUrl = runscopeHost + "/buckets/" + runscopeBucket + "/messages";
+
+                segment::http::Request req;
+                req.Method = "GET";
+                req.Headers["Authorization"] = "Bearer " + runscopeToken;
+
+                bool message_found = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    req.URL = messageUrl + "?count=20";
+
+                    auto res = Handler->Handle(req);
+                    auto data = Object::parse(res->Body);
+
+                    std::vector<Object> messages;
+                    for (auto item : data["data"])
+                    {
+                        req.URL = messageUrl + "/" + item["uuid"].get<std::string>();
+                        res = Handler->Handle(req);
+
+                        auto messageData = Object::parse(res->Body);
+                        messages.push_back(messageData["data"]["request"]["body"]);
+                    }
+
+                    for (auto m : messages)
+                    {
+                        auto msg = Object::parse(m.get<std::string>());
+                        if (msg["anonymousId"].get<std::string>() == anonymousId)
+                        {
+                            message_found = true;
+                            break;
+                        }
+                    }
+
+                    if (message_found)
+                        break;
+                    else
+                        std::this_thread::sleep_for(std::chrono::seconds(5));
+                }
+
+                REQUIRE(message_found);
             }
-
-            // Give some time for events to be delivered from the API to destinations.
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-
-//             AND_WHEN("Retrieve messages from runscope bucket")
-//             {
-//                 std::shared_ptr<segment::http::Handler> Handler;
-// #ifdef SEGMENT_USE_CURL
-//                 Handler = std::make_shared<segment::http::HandlerCurl>();
-// #elif defined(SEGMENT_USE_WININET)
-//                 Handler = std::make_shared<segment::http::HandlerWinInet>();
-// #else
-//                 Handler = std::make_shared<segment::http::HandlerNone>();
-// #endif
-
-//                 segment::http::Request req;
-//                 req.Method = "GET";
-//                 req.Headers["Authorization"] = "Basic " + runscopeToken;
-//                 req.URL = runscopeHost + "/buckets/" + runscopeBucket + "/messages?count=20";
-
-//                 for (int i = 0; i < 5; i++)
-//                 {
-//                     Handler->Handle(req);
-//                 }
-
-//                 AND_THEN("the message sent to api.segment.io exists in messages")
-//                 {
-
-//                 }
-//             }
         }
     }
 }
